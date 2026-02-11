@@ -9,46 +9,48 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 )
 
-func checkCPUUsage() tea.Msg {
-	cpuPercent, err := cpu.Percent(time.Second, false)
-	if err != nil {
-		return errMsg{err}
-	}
-	return cpuUsageMsg{cpuPercent}
+func (m DashboardModel) tickCPU() tea.Cmd {
+	return tea.Tick(time.Millisecond*800, func(t time.Time) tea.Msg {
+		cpuPercent, _ := cpu.Percent(0, false)
+		return cpuUsageMsg{Percent: cpuPercent}
+	})
 }
 
-func checkVirtualMemory() tea.Msg {
-	v, err := mem.VirtualMemory()
-	if err != nil {
-		return errMsg{err}
-	}
-	return virtualMemoryMsg{
-		Total:       v.Total / 1024 / 1024 / 1024, // GB
-		Free:        v.Free / 1024 / 1024 / 1024,  // GB
-		UsedPercent: v.UsedPercent,                // %
-	}
+func (m DashboardModel) tickMemory() tea.Cmd {
+	return tea.Tick(time.Second*2, func(t time.Time) tea.Msg {
+		v, _ := mem.VirtualMemory()
+		return virtualMemoryMsg{
+			Total:       v.Total / 1024 / 1024 / 1024,
+			Free:        v.Free / 1024 / 1024 / 1024,
+			UsedPercent: v.UsedPercent,
+		}
+	})
 }
 
-func checkSwapMemory() tea.Msg {
-	s, err := mem.SwapMemory()
-	if err != nil {
-		return errMsg{err}
-	}
-	return swapMemoryMsg{
-		Total:       s.Total,
-		Free:        s.Free,
-		UsedPercent: s.UsedPercent,
-	}
+func (m DashboardModel) tickSwap() tea.Cmd {
+	return tea.Tick(time.Second*5, func(t time.Time) tea.Msg {
+		s, err := mem.SwapMemory()
+		if err != nil {
+			return errMsg{err}
+		}
+		return swapMemoryMsg{
+			Total:       s.Total / 1024 / 1024 / 1024, // GB
+			Free:        s.Free / 1024 / 1024 / 1024,  // GB
+			UsedPercent: s.UsedPercent,
+		}
+	})
 }
 
-func checkDiskUsage() tea.Msg {
-	d, err := disk.Usage("/")
-	if err != nil {
-		return errMsg{err}
-	}
-	return diskMsg{
-		Total:       d.Total,
-		Free:        d.Free,
-		UsedPercent: d.UsedPercent,
-	}
+func (m DashboardModel) tickDisk() tea.Cmd {
+	return tea.Tick(time.Second*30, func(t time.Time) tea.Msg {
+		d, err := disk.Usage("/")
+		if err != nil {
+			return errMsg{err}
+		}
+		return diskMsg{
+			Total:       d.Total / 1024 / 1024 / 1024, // GB
+			Free:        d.Free / 1024 / 1024 / 1024,  // GB
+			UsedPercent: d.UsedPercent,
+		}
+	})
 }
