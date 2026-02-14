@@ -15,3 +15,6 @@ Kubernetes Workload k8s.io/client-go
 Kubernetes Resource Usage k8s.io/metrics/pkg/client/clientset/versioned
 
 <!-- note: run 'minikube addons enable metrics-server' to allow Go to access resource usage in Minikube -->
+
+export DOCKER_HOST=unix:///var/run/docker.sock
+go run main.go

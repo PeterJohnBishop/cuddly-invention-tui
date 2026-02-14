@@ -1,5 +1,7 @@
 package dashboard
 
+import "github.com/moby/moby/api/types/container"
+
 // error
 type errMsg struct {
 	Err error
@@ -31,4 +33,9 @@ type diskMsg struct {
 	Total       uint64
 	Free        uint64
 	UsedPercent float64
+}
+
+// Docker Containers
+type dockerMsg struct {
+	Containers []container.Summary
 }

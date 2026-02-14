@@ -1,9 +1,12 @@
 package dashboard
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/moby/moby/client"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v4/mem"
@@ -52,5 +55,23 @@ func (m DashboardModel) tickDisk() tea.Cmd {
 			Free:        d.Free / 1024 / 1024 / 1024,  // GB
 			UsedPercent: d.UsedPercent,
 		}
+	})
+}
+
+func (m DashboardModel) tickDocker() tea.Cmd {
+	return tea.Tick(time.Second*10, func(t time.Time) tea.Msg {
+		if m.dockerClient == nil {
+			return errMsg{Err: fmt.Errorf("Docker client not initialized")}
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		containers, err := m.dockerClient.ContainerList(ctx, client.ContainerListOptions{All: true})
+		if err != nil {
+			return errMsg{Err: err}
+		}
+
+		return dockerMsg{Containers: containers.Items}
 	})
 }
